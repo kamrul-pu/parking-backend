@@ -20,11 +20,9 @@ class ParkingFactory(factory.django.DjangoModelFactory):
     address = factory.Faker("address")
     latitude = factory.Faker("latitude")
     longitude = factory.Faker("longitude")
-    location = factory.LazyAttribute(
-        lambda o: {"latitude": o.latitude, "longitude": o.longitude}
-    )
     rate = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
     capacity = factory.Faker("random_int", min=10, max=100)
+    occupied = factory.Faker("random_int", min=10, max=30)
     parking_type = factory.Iterator(
         [
             ParkingType.COVERED,
@@ -46,8 +44,6 @@ class SlotFactory(factory.django.DjangoModelFactory):
         [SlotAvailability.AVAILABLE, SlotAvailability.OCCUPIED]
     )
     rate = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
-    availability_start = factory.LazyFunction(timezone.now)
-    availability_end = factory.LazyFunction(lambda: timezone.now() + timedelta(hours=3))
     duration_limit = factory.Faker(
         "time_delta", end_datetime=timezone.now() + timedelta(days=1)
     )
@@ -62,12 +58,14 @@ class ParkingSessionFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     # Generate a vehicle number: a letter, a hyphen, and digits
     vehicle_number = factory.LazyAttribute(
-        lambda o: f"{factory.Faker.random_letter().upper()}-{factory.faker.random_number(digits=5)}"
+        lambda o: f"{factory.Faker('random_element', elements='ABCDEFGHIJKLMNOPQRSTUVWXYZ')}-{factory.Faker('random_number', digits=5)}"
     )
     slot = factory.SubFactory(SlotFactory)
     entry_time = factory.LazyFunction(timezone.now)
     exit_time = factory.LazyFunction(lambda: timezone.now() + timedelta(hours=2))
-    total_amount = factory.LazyAttribute(lambda o: o.calculate_cost())
+    total_amount = factory.Faker(
+        "pydecimal", left_digits=3, right_digits=2, positive=True
+    )
     payment_status = factory.Iterator([PaymentStatus.PENDING, PaymentStatus.PAID])
 
     class Meta:
@@ -76,9 +74,7 @@ class ParkingSessionFactory(factory.django.DjangoModelFactory):
 
 # Factory for Payment Model
 class PaymentFactory(factory.django.DjangoModelFactory):
-    user = factory.SubFactory(
-        "core.factories.UserFactory"
-    )  # Assuming you have a UserFactory
+    user = factory.SubFactory(UserFactory)
     session = factory.SubFactory(ParkingSessionFactory)
     payment_method = factory.Iterator([PaymentMethod.CARD, PaymentMethod.CASH])
     payment_status = factory.Iterator([PaymentStatus.PENDING, PaymentStatus.PAID])

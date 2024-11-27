@@ -19,7 +19,8 @@ class Parking(NameSlugDescriptionBaseModel):
     longitude = models.FloatField()
     location = models.JSONField(default=dict)
     rate = models.DecimalField(max_digits=6, decimal_places=2)
-    capacity = models.IntegerField(default=0)
+    capacity = models.IntegerField(default=50)
+    occupied = models.IntegerField(default=0)
     parking_type = models.CharField(
         max_length=20, choices=ParkingType.choices, default=ParkingType.OTHER
     )
@@ -35,7 +36,7 @@ class Parking(NameSlugDescriptionBaseModel):
 class Slot(BaseModelWithUID):
     name = models.CharField(max_length=50, blank=True)
     parking = models.ForeignKey(
-        Parking, related_name="slots", on_delete=models.DO_NOTHING, blank=True
+        Parking, related_name="slots", on_delete=models.SET_NULL, blank=True, null=True
     )
     availability = models.CharField(
         max_length=15,
@@ -43,8 +44,6 @@ class Slot(BaseModelWithUID):
         default=SlotAvailability.AVAILABLE,
     )
     rate = models.DecimalField(max_digits=6, decimal_places=2)
-    availability_start = models.DateTimeField()  # When the slot becomes available
-    availability_end = models.DateTimeField()  # When the slot is no longer available
     duration_limit = models.DurationField(
         default=24
     )  # Maximum duration a user can park
@@ -54,16 +53,16 @@ class Slot(BaseModelWithUID):
         return f"{self.name} - {self.availability}"
 
     def is_available(self):
-        return self.status == "available" and timezone.now() < self.availability_end
+        return self.availability == SlotAvailability.AVAILABLE
 
 
 class ParkingSession(BaseModelWithUID):
     user = models.ForeignKey(
-        User, related_name="sessions", on_delete=models.DO_NOTHING, blank=True
+        User, related_name="sessions", on_delete=models.SET_NULL, blank=True, null=True
     )
     vehicle_number = models.CharField(max_length=20)
     slot = models.ForeignKey(
-        Slot, related_name="sessions", on_delete=models.DO_NOTHING, blank=True
+        Slot, related_name="sessions", on_delete=models.SET_NULL, blank=True, null=True
     )
     entry_time = models.DateTimeField(auto_now_add=True)
     exit_time = models.DateTimeField(blank=True)
@@ -84,10 +83,14 @@ class ParkingSession(BaseModelWithUID):
 # Payment (Transaction information for the booking)
 class Payment(BaseModelWithUID):
     user = models.ForeignKey(
-        User, related_name="payments", on_delete=models.DO_NOTHING, blank=True
+        User, related_name="payments", on_delete=models.SET_NULL, blank=True, null=True
     )
     session = models.OneToOneField(
-        ParkingSession, related_name="payments", on_delete=models.DO_NOTHING, blank=True
+        ParkingSession,
+        related_name="payments",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
     )
     payment_method = models.CharField(
         max_length=50, choices=PaymentMethod.choices, default=PaymentMethod.CASH
@@ -100,4 +103,4 @@ class Payment(BaseModelWithUID):
     )  # Unique transaction ID
 
     def __str__(self):
-        return f"Payment for Booking {self.booking.id} - {self.payment_status}"
+        return f"Payment for Booking {self.session.id} - {self.payment_status}"

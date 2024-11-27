@@ -12,6 +12,7 @@ class ParkingAdmin(admin.ModelAdmin):
         "name",
         "address",
         "capacity",
+        "occupied",
         "status",
     )
 
