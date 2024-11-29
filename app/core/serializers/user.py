@@ -19,6 +19,7 @@ class UserListSerializer(serializers.ModelSerializer):
             "uid",
             "first_name",
             "last_name",
+            "phone",
             "email",
             "gender",
             "kind",
