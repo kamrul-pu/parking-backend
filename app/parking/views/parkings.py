@@ -37,7 +37,7 @@ class ParkingList(ListCreateAPIView):
         if city:
             queryset = queryset.filter(city__icontains=city)
         if state:
-            queryset = queryset.filter(state__iexact=state)
+            queryset = queryset.filter(state__icontains=state)
         if latitude and longitude:
             latitude = float(latitude)
             longitude = float(longitude)
