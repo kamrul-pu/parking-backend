@@ -16,7 +16,7 @@ from parking.serializers.parkings import ParkingListSerializer, ParkingDetailSer
 from math import radians, cos
 
 
-MAX_DISTANCE: int = os.environ.get("MAX_DISTANCE", 10000)
+MAX_DISTANCE: int = int(os.environ.get("MAX_DISTANCE", 10000))
 
 
 class ParkingList(ListCreateAPIView):
