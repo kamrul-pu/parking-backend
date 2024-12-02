@@ -1,3 +1,5 @@
+import os
+
 from math import cos, radians
 
 from django.db.models import F
@@ -12,6 +14,9 @@ from parking.models import Parking
 from parking.serializers.parkings import ParkingListSerializer, ParkingDetailSerializer
 
 from math import radians, cos
+
+
+MAX_DISTANCE: int = os.environ.get("MAX_DISTANCE", 10000)
 
 
 class ParkingList(ListCreateAPIView):
@@ -42,12 +47,9 @@ class ParkingList(ListCreateAPIView):
             latitude = float(latitude)
             longitude = float(longitude)
 
-            # Set max_distance to 1000 meters (1km)
-            max_distance = 1000
-
             # Calculate the range in degrees
-            lat_distance = max_distance / 111000
-            lon_distance = max_distance / (111000 * cos(radians(latitude)))
+            lat_distance = MAX_DISTANCE / 111000
+            lon_distance = MAX_DISTANCE / (111000 * cos(radians(latitude)))
 
             # Calculate min and max for latitude and longitude
             min_latitude = latitude - lat_distance
