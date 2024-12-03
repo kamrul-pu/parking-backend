@@ -18,6 +18,12 @@ class ParkingSessionList(ListCreateAPIView):
             return [IsAuthenticated()]
         return [IsAdminUser()]
 
+    def get_queryset(self):
+        queryset = self.queryset
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(user_id=self.request.user.id)
+        return queryset
+
 
 class ParkingSessionDetail(RetrieveUpdateAPIView):
     permission_classes = (IsAdminUser,)

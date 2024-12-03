@@ -12,9 +12,7 @@ from parking.models import Parking
 
 
 from parking.serializers.parkings import ParkingListSerializer, ParkingDetailSerializer
-
-from math import radians, cos
-
+from parking.utils import calculate_distance
 
 MAX_DISTANCE: int = int(os.environ.get("MAX_DISTANCE", 10000))
 
@@ -43,13 +41,16 @@ class ParkingList(ListCreateAPIView):
             queryset = queryset.filter(city__icontains=city)
         if state:
             queryset = queryset.filter(state__icontains=state)
+
         if latitude and longitude:
             latitude = float(latitude)
             longitude = float(longitude)
 
-            # Calculate the range in degrees
-            lat_distance = MAX_DISTANCE / 111000
-            lon_distance = MAX_DISTANCE / (111000 * cos(radians(latitude)))
+            # Calculate the range in degrees (for the bounding box filter)
+            lat_distance = MAX_DISTANCE / 111000  # degrees latitude
+            lon_distance = MAX_DISTANCE / (
+                111000 * cos(radians(latitude))
+            )  # degrees longitude
 
             # Calculate min and max for latitude and longitude
             min_latitude = latitude - lat_distance
@@ -57,11 +58,19 @@ class ParkingList(ListCreateAPIView):
             min_longitude = longitude - lon_distance
             max_longitude = longitude + lon_distance
 
-            # Apply the filtering for latitude and longitude range
+            # Apply the bounding box filter
             queryset = queryset.filter(
                 latitude__range=[min_latitude, max_latitude],
                 longitude__range=[min_longitude, max_longitude],
             )
+
+            # Calculate the distance for each parking location
+            # Annotate queryset with the calculated distance for each parking
+            for parking in queryset:
+                parking.distance = calculate_distance(
+                    latitude, longitude, parking.latitude, parking.longitude
+                )
+
         return queryset
 
 

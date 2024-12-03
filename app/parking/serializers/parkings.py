@@ -8,6 +8,7 @@ from parking.choices import ParkingType
 
 class ParkingListSerializer(serializers.ModelSerializer):
     remaining = serializers.IntegerField(read_only=True)
+    distance = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Parking
@@ -26,6 +27,7 @@ class ParkingListSerializer(serializers.ModelSerializer):
             "capacity",
             "occupied",
             "remaining",
+            "distance",
         )
         read_only_fields = (
             "id",
