@@ -269,7 +269,7 @@ REST_FRAMEWORK = {
     ],
     # "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {"anon": "300/minute", "user": "1200/minute"},
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "common.pagination.CustomPagination",
     "PAGE_SIZE": 40,
 }
 
@@ -293,5 +293,5 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://parking-finder-sage.vercel.app"
+    "https://parking-finder-sage.vercel.app",
 ]
